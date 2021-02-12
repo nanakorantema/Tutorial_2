@@ -1,0 +1,59 @@
+---
+title: "Tutorial_2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(tidycensus)
+library(usethis)
+
+edit_r_environ()
+```
+
+```{r, include = FALSE}
+pop <- get_decennial(geography = "state",
+                     variables = c("P001001", "P002005"),
+                     year = 2010,
+                     output = "wide",
+                     geometry = TRUE,
+                     shift_geo = TRUE)
+
+unique(pop$NAME)
+```
+
+
+```{r, message=FALSE, results= 'hide'}
+racevars <- c(White = "B02001_002", 
+              Black = "B02001_003", 
+              Asian = "B02001_005",
+              Hispanic = "B03003_003")
+
+Harris<- get_acs(geography = "tract",
+                  variables = racevars, 
+                  year = 2018,
+                  state = "MA",
+                  county = "Middlesex",
+                  geometry = TRUE,
+                  summary_var = "B02001_001")
+```
+
+
+```{r}
+Harris %>% 
+  mutate(Percent = estimate/summary_est * 100) %>% 
+  ggplot(aes(fill= Percent, color = Percent)) +
+  scale_fill_viridis_c(option = "magma",
+                       direction = -1) +
+  scale_color_viridis_c(option = "magma",
+                        direction = -1) +
+  labs(title = "Racial Geography of Middlesex County, MA",
+       caption = "ACS 2014-2018") +
+  facet_wrap(~variable) +
+  geom_sf() +
+  theme_void()
+
+
+```
+
